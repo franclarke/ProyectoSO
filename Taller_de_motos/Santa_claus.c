@@ -5,60 +5,57 @@
 #include <semaphore.h>
 #include <sys/types.h>
 
-#define TIEMPO_DESPERTAR 2
+#define RENOS 9
+#define ELFOS_NECESARIOS 3
 #define TIEMPO_CHASIS 5
 #define TIEMPO_MOTOR 7
 #define TIEMPO_PINTAR 3
 #define TIEMPO_EXTRA 2
 
-sem_t elfo_esperando,santa_despierto,reno_esperando;
-pthread_mutex_t = PTHREAD_MUTEX_INITIALIZER;
-int fila_elfos = 0;
-int fila_renos = 0;
+sem_t trineo,santa_despierto,atendido,cant_elfos(2),cant_renos(8),max_elfos(3),max_renos(9);
+pthread_mutex_t acceso_cant_renos= PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t acceso_cant_elfos= PTHREAD_MUTEX_INITIALIZER;
 
 void* santa(void* args){
 	while(1){
-	sem_wait(&elfo_esperando);
-	sem_wait(&elfo_esperando);
-	sem_wait(&elfo_esperando);
+	sem_wait(&santa_despierto);
 	printf("Santa despierta.\n");
-	sem_post(&santa_despierto);
-	sem_post(&elfo_esperando);
-	printf("Resolviendo dificultades de un elfo..");
-	sleep(TIEMPO_DESPERTAR);
-	printf("Elfo atendido.\n");
-	//intenta atender otros elfos
+	pthread_mutex_lock(%acceso_cant_renos);
+	if(!try_wait(&cant_renos)){
+		for(int i = 0; i<RENOS ; i++)
+			sem_post(&trineo);
+	}
+	pthread_mutex_unlock(%acceso_cant_renos);
+	pthread_mutex_lock(%acceso_cant_elfos);
+	if(!try_wait(&cant_elfos)){
+		for(int i = 0; i<ELFOS_NECESARIOS ; i++)
+			sem_post(&atendido);
+	}
+	pthread_mutex_unlock(%acceso_cant_elfos);
 	}
 }
 void* reno(void* args){
-	while(1){
-	sem_wait(&ruedas);
-	sem_wait(&ruedas);
-	printf("Armando chasis..\n");
-	sleep(TIEMPO_CHASIS);
-	printf("Chasis armado.\n");
-	sem_post(&chasis);
+	sem_wait(max_renos);
+	printf("Regreso un reno..");
+	pthread_mutex_lock(%acceso_cant_renos);
+	if(!try_wait(&cant_renos)){
+		sem_post(&santa_despierto);
 	}
+	pthread_mutex_unlock(%acceso_cant_renos);
+	sem_wait(&trineo);
+	sem_post(max_renos);
 }
 void* elfo(void* args){
-	sem_wait(&fila_elfos);
-	printf("Agregando motor..\n");
-	sleep(TIEMPO_MOTOR);
-	printf("Motor agregado.\n");
-
-	sem_post(&elfo_esperando);
-	sem_wait(&santa_despierto);
-	printf("Elfo %i ha sido atendido",getpid());
-}
-void* pintar(void* args){
-	char* color = (char*)args;
-	while(1){
-	sem_wait(&motor);
-	printf("Pintando moto de %s..\n",color);
-	sleep(TIEMPO_PINTAR);
-	printf("Moto pintada de %s.\n",color);
-	sem_post(&pintura);
+	sem_wait(max_elfos);
+	printf("Hay un elfo esperando a que santa le ayude..");
+	pthread_mutex_lock(%acceso_cant_elfos);
+	if(!try_wait(&cant_elfos)){
+		sem_post(&santa_despierto);
 	}
+	pthread_mutex_unlock(%acceso_cant_elfos);
+	sem_post(&santa_despierto);
+	sem_wait(&atendido); //Esperando a que santa lo termine de atender
+	sem_post(max_elfos);
 }
 
 int main(int argc, char **argv){
