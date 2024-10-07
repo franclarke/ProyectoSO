@@ -19,6 +19,8 @@ void* santa(void* args){
 	if(sem_trywait(&cant_renos)==-1){
 		for(int i = 0; i<RENOS ; i++)
 			sem_post(&trineo);
+		for(int i = 0; i<RENOS; i++)
+			sem_post(&cant_renos);
 	}
 	else 
 		sem_post(&cant_renos);
@@ -27,6 +29,8 @@ void* santa(void* args){
 	if(sem_trywait(&cant_elfos)==-1){
 		for(int i = 0; i<ELFOS_NECESARIOS ; i++)
 			sem_post(&atendido);
+		for(int i = 0; i<ELFOS_NECESARIOS ; i++)
+			sem_post(&cant_elfos);
 	}
 	else 
 		sem_post(&cant_elfos);
@@ -43,7 +47,6 @@ void* reno(void* args){
 	}
 	pthread_mutex_unlock(&acceso_cant_renos);
 	sem_wait(&trineo);
-	sem_post(&cant_renos);
 	printf("Se libero un reno..\n");
 	sem_post(&max_renos);
 	return 0;
@@ -58,7 +61,6 @@ void* elfo(void* args){
 	}
 	pthread_mutex_unlock(&acceso_cant_elfos);
 	sem_wait(&atendido);
-	sem_post(&cant_elfos);
 	printf("Se libero un elfo..\n");
 	sem_post(&max_elfos);
 	return 0;
@@ -66,7 +68,7 @@ void* elfo(void* args){
  
  
 int main(int argc, char **argv){
-	pthread_t t_santa, t_renos[RENOS], t_elfos[5];
+	pthread_t t_santa, t_renos[RENOS], t_elfos[9];
  
 	sem_init(&trineo,0,0);
 	sem_init(&atendido,0,0);
@@ -80,7 +82,7 @@ int main(int argc, char **argv){
 	for (int i = 0; i < RENOS; i++){
 		pthread_create(&t_renos[i], NULL, reno, NULL);
 	}
-	for (int i = 0; i < 5; i++){
+	for (int i = 0; i < 9; i++){
 		pthread_create(&t_elfos[i], NULL, elfo, NULL);
 	}
  
