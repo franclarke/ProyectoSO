@@ -48,10 +48,11 @@ void preparar_hamburguesa(){
 	printf("Preparando hamburguesa..\n");
 	sleep(TIEMPO_HAMBURGUESA);
 	write(pipe_hamburguesa[1],&hamburguesa,sizeof(int));
-	close(pipe_hamburguesa[1]);
 	printf("Hamburguesa lista.\n");
     }
+    close(pipe_hamburguesa[1]);
 }
+
 void preparar_menu_vegano(){
     close(pipe_pedido[0]);
     close(pipe_pedido[1]);
@@ -69,8 +70,8 @@ void preparar_menu_vegano(){
 	write(pipe_vegano[1],&vegano,sizeof(int));
 	printf("Menu vegano listo.\n");
     }
+    close(pipe_vegano[1]);
 }
-
 
 void preparar_papas(){
     close(pipe_pedido[0]);
@@ -89,14 +90,10 @@ void preparar_papas(){
 	write(pipe_papas[1],&papas,sizeof(int));
 	printf("Papas fritas listas.\n");
     }
+    close(pipe_papas[1]);
 }
 
 void recibir_despachar(){
-    close(pipe_pedido[0]);
-    close(pipe_despacho[1]);
-    close(pipe_hamburguesa[1]);
-    close(pipe_vegano[1]);
-    close(pipe_papas[1]);
     //cierra pipes
     close(pipe_pedido[1]);
     close(pipe_despacho[0]);
@@ -110,7 +107,7 @@ void recibir_despachar(){
 	read(pipe_pedido[0],&p,sizeof(pedido));
 	close(pipe_pedido[0]);
 	//atiendo todos los vips
-	/*while((p.VIP)==1){
+	while((p.VIP)==1){
 	    if((p.combo)==0){
 		read(pipe_hamburguesa[0],&hamburguesa,sizeof(int));
 		read(pipe_papas[0],&papas,sizeof(int));
@@ -131,13 +128,12 @@ void recibir_despachar(){
 	    read(pipe_vegano[0],&vegano,sizeof(int));
 	    read(pipe_papas[0],&papas,sizeof(int));
 	}
-	write(pipe_despacho[1],&despacho,sizeof(int));*/
+	write(pipe_despacho[1],&despacho,sizeof(int));
     }
 }
 
 void cliente(int VIP, int combo){
     //cerrar pipes
-    printf("Llega cliente, VIP: %i, combo: %i.\n",VIP,combo);
     close(pipe_pedido[0]);
     close(pipe_despacho[1]);
     close(pipe_papas[0]);
@@ -149,11 +145,12 @@ void cliente(int VIP, int combo){
     pedido p;
     p.VIP = VIP;
     p.combo = combo;
+    printf("Llega cliente, VIP: %i, combo: %i.\n",VIP,combo);
     write(pipe_pedido[1],&p,sizeof(pedido));
     close(pipe_pedido[1]);
     printf("Cliente esperando..\n");
-    read(pipe_hamburguesa[0],&despacho,sizeof(int));
-    close(pipe_hamburguesa[0]);
+    read(pipe_despacho[0],&despacho,sizeof(int));
+    close(pipe_despacho[0]);
     printf("Se va cliente.\n");
 }
 
