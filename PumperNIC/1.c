@@ -97,18 +97,17 @@ void recibir_despachar(){
     //cierra pipes
     close(pipe_pedido[1]);
     close(pipe_despacho[0]);
-    close(pipe_papas[0]);
-    close(pipe_vegano[0]);
-    close(pipe_hamburguesa[0]);
+    close(pipe_papas[1]);
+    close(pipe_vegano[1]);
+    close(pipe_hamburguesa[1]);
     int despacho = 1;
     int vegano,papas,hamburguesa;
     pedido p;
     while(1){
 	read(pipe_pedido[0],&p,sizeof(pedido));
-	close(pipe_pedido[0]);
 	//atiendo todos los vips
-	while((p.VIP)==1){
-	    if((p.combo)==0){
+	while(p.VIP==1){
+	    if(p.combo==0){
 		read(pipe_hamburguesa[0],&hamburguesa,sizeof(int));
 		read(pipe_papas[0],&papas,sizeof(int));
 	    }
@@ -119,7 +118,6 @@ void recibir_despachar(){
 	    write(pipe_despacho[1],&despacho,sizeof(int));
 	    read(pipe_pedido[0],&p,sizeof(pedido));
 	}
-	close(pipe_pedido[0]);
 	if(p.combo==0){
 	    read(pipe_hamburguesa[0],&hamburguesa,sizeof(int));
 	    read(pipe_papas[0],&papas,sizeof(int));
@@ -140,6 +138,7 @@ void cliente(int VIP, int combo){
     close(pipe_papas[1]);
     close(pipe_vegano[0]);
     close(pipe_vegano[1]);
+    close(pipe_hamburguesa[0]);
     close(pipe_hamburguesa[1]);
     int despacho;
     pedido p;
@@ -151,7 +150,7 @@ void cliente(int VIP, int combo){
     printf("Cliente esperando..\n");
     read(pipe_despacho[0],&despacho,sizeof(int));
     close(pipe_despacho[0]);
-    printf("Se va cliente.\n");
+    printf("Se va cliente, VIP: %i, combo: %i.\n",VIP,combo);
 }
 
 int main(int argc, char **argv){
