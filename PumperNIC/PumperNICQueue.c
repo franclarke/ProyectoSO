@@ -109,8 +109,6 @@ void cliente(int VIP, int combo,int nro_pedido){
     printf("Cliente esperando..\n");
     msgrcv(qid,&pedido,sizeof(mensaje)-sizeof(long),nro_pedido,0);
     printf("Se va cliente con numero de pedido: %i, VIP: %i, combo: %i.\n",nro_pedido,VIP,combo);
-    
-    exit(0);
 }
 
 int main(int argc, char **argv){
@@ -137,8 +135,10 @@ int main(int argc, char **argv){
 	
 	//Creacion de clientes
 	while(1){
-		if(fork()==0)
+		if(fork()==0){
 			cliente(rand()%2,rand()%3+1,nro_pedido);
+			exit(0);
+		}
 		nro_pedido++;
 		sleep(rand()%3);
     }
