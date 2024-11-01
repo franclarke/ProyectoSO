@@ -10,7 +10,7 @@
 #define TIEMPO_RENOS 1
 #define TIEMPO_ELFOS 1
  
-sem_t trineo,santa_despierto,atendido,cant_elfos,cant_renos,max_elfos,max_renos,ultimo_elfo,ultimo_reno;
+sem_t trineo,santa_despierto,atendido,cant_elfos,cant_renos,max_elfos;
 pthread_mutex_t acceso_cant_renos= PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t acceso_cant_elfos= PTHREAD_MUTEX_INITIALIZER;
  
@@ -18,57 +18,65 @@ void* santa(void* args){
 	while(1){
 		sem_wait(&santa_despierto);
 		printf("Santa despierta\n");
-		if(sem_trywait(&ultimo_reno)==0){
-			pthread_mutex_lock(&acceso_cant_renos);
-			for(int i = 0; i<RENOS-1; i++)
-				sem_post(&cant_renos);
+		pthread_mutex_lock(&acceso_cant_renos);
+		if(sem_trywait(&cant_renos)==-1){
 			for(int i = 0; i<RENOS ; i++){
 				printf("Se libero un reno..\n");
 				sem_post(&trineo);
+				sem_post(&cant_renos);
 			}
-			pthread_mutex_unlock(&acceso_cant_renos);
 		}
-		else if(sem_trywait(&ultimo_elfo)==0){
-			pthread_mutex_lock(&acceso_cant_elfos);
-			for(int i = 0; i<ELFOS_NECESARIOS-1 ; i++)
-				sem_post(&cant_elfos);
+		else
+			sem_post(&cant_renos);
+		pthread_mutex_unlock(&acceso_cant_renos);
+		pthread_mutex_lock(&acceso_cant_elfos);
+		if(sem_trywait(&cant_elfos)==-1){
 			for(int i = 0; i<ELFOS_NECESARIOS ; i++){
 				printf("Se libero un elfo..\n");
 				sem_post(&atendido);
+				sem_post(&cant_elfos);
 				sem_post(&max_elfos);
 			}
-			pthread_mutex_unlock(&acceso_cant_elfos);
-		}	
+		}
+		else
+			sem_post(&cant_elfos);
+		pthread_mutex_unlock(&acceso_cant_elfos);	
 	}
+	
 	return 0;
 }
 void* reno(void* args){
 	while(1){
 		pthread_mutex_lock(&acceso_cant_renos);
+		sem_wait(&cant_renos);
 		if(sem_trywait(&cant_renos)==-1){
 			printf("Llego el ultimo reno.\n");
-			sem_post(&ultimo_reno);
 			sem_post(&santa_despierto);
 		}
-		else 
+		else {
+			sem_post(&cant_renos);
 			printf("Hay un reno esperando..\n");
+		}
 		pthread_mutex_unlock(&acceso_cant_renos);
 		sem_wait(&trineo);
 		sleep(TIEMPO_RENOS);
 	}
+	
 	return 0;
 }
 void* elfo(void* args){
 	while(1){
 		sem_wait(&max_elfos);
 		pthread_mutex_lock(&acceso_cant_elfos);
+		sem_wait(&cant_elfos);
 		if(sem_trywait(&cant_elfos)==-1){
 			printf("Llego el ultimo elfo..\n");
-			sem_post(&ultimo_elfo);
 			sem_post(&santa_despierto);
 		}
-		else
+		else{
+			sem_post(&cant_elfos);
 			printf("Hay un elfo esperando a que santa le ayude..\n");
+		}
 		pthread_mutex_unlock(&acceso_cant_elfos);
 		sem_wait(&atendido);
 		sleep(TIEMPO_ELFOS);
@@ -84,11 +92,8 @@ int main(int argc, char **argv){
 	sem_init(&atendido,0,0);
 	sem_init(&santa_despierto,0,0);
 	sem_init(&max_elfos,0,ELFOS_NECESARIOS);
-	sem_init(&max_renos,0,RENOS);
-	sem_init(&cant_renos, 0, RENOS-1);
-	sem_init(&cant_elfos, 0, ELFOS_NECESARIOS-1);
-	sem_init(&ultimo_elfo, 0, 0);
-	sem_init(&ultimo_reno, 0, 0);
+	sem_init(&cant_renos, 0, RENOS);
+	sem_init(&cant_elfos, 0, ELFOS_NECESARIOS);
  
 	pthread_create(&t_santa,NULL,santa,NULL);
 	for (int i = 0; i < RENOS; i++){
@@ -107,3 +112,4 @@ int main(int argc, char **argv){
 	}
 	return 0;
 }
+

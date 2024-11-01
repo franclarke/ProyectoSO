@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include <sys/types.h>
+#include <fcntl.h>
 
 
 #define TIEMPO_HAMBURGUESA 2
@@ -26,6 +25,9 @@ int pipe_pedido[2];
 int pipe_hamburguesa[2];
 int pipe_vegano[2];
 int pipe_papas[2];
+int pipe_pedido_hamburguesa[2];
+int pipe_pedido_vegano[2];
+int pipe_pedido_papas[2];
 int pipe_despacho[2];
 
 typedef struct{
@@ -43,13 +45,21 @@ void preparar_hamburguesa(){
     close(pipe_vegano[0]);
     close(pipe_vegano[1]);
     close(pipe_hamburguesa[0]);
+    close(pipe_pedido_vegano[1]);
+    close(pipe_pedido_vegano[0]);
+    close(pipe_pedido_hamburguesa[1]);
+    close(pipe_pedido_papas[0]);
+    close(pipe_pedido_papas[1]);
     int hamburguesa = 1;
+    int pedidoH;
     while(1){
+	read(pipe_pedido_hamburguesa[0],&pedidoH,sizeof(int));
 	printf("Preparando hamburguesa..\n");
 	sleep(TIEMPO_HAMBURGUESA);
 	write(pipe_hamburguesa[1],&hamburguesa,sizeof(int));
 	printf("Hamburguesa lista.\n");
     }
+    close(pipe_pedido_hamburguesa[0]);
     close(pipe_hamburguesa[1]);
 }
 
@@ -63,13 +73,21 @@ void preparar_menu_vegano(){
     close(pipe_vegano[0]);
     close(pipe_hamburguesa[0]);
     close(pipe_hamburguesa[1]);
+    close(pipe_pedido_vegano[1]);
+    close(pipe_pedido_hamburguesa[0]);
+    close(pipe_pedido_hamburguesa[1]);
+    close(pipe_pedido_papas[0]);
+    close(pipe_pedido_papas[1]);
     int vegano = 1;
+    int pedidoV;
     while(1){
+	read(pipe_pedido_vegano[0],&pedidoV,sizeof(int));
 	printf("Preparando menu vegano..\n");
 	sleep(TIEMPO_MENU_VEGANO);
 	write(pipe_vegano[1],&vegano,sizeof(int));
 	printf("Menu vegano listo.\n");
     }
+    close(pipe_pedido_vegano[0]);
     close(pipe_vegano[1]);
 }
 
@@ -83,13 +101,21 @@ void preparar_papas(){
     close(pipe_vegano[1]);
     close(pipe_hamburguesa[0]);
     close(pipe_hamburguesa[1]);
+    close(pipe_pedido_vegano[1]);
+    close(pipe_pedido_vegano[0]);
+    close(pipe_pedido_hamburguesa[0]);
+    close(pipe_pedido_hamburguesa[1]);
+    close(pipe_pedido_papas[1]);
     int papas = 1;
+    int pedidoP;
     while(1){
+	read(pipe_pedido_papas[0],&pedidoP,sizeof(int));
 	printf("Preparando papas fritas..\n");
 	sleep(TIEMPO_PAPAS);
 	write(pipe_papas[1],&papas,sizeof(int));
 	printf("Papas fritas listas.\n");
     }
+    close(pipe_pedido_papas[0]);
     close(pipe_papas[1]);
 }
 
@@ -100,18 +126,26 @@ void recibir_despachar(){
     close(pipe_papas[1]);
     close(pipe_vegano[1]);
     close(pipe_hamburguesa[1]);
+    close(pipe_pedido_hamburguesa[0]);
+    close(pipe_pedido_papas[0]);
+    close(pipe_pedido_vegano[0]);
     int despacho = 1;
     int vegano,papas,hamburguesa;
+    int pedidoH,pedidoP,pedidoV = 1;
     pedido p;
     while(1){
 	read(pipe_pedido[0],&p,sizeof(pedido));
 	//atiendo todos los vips
 	while(p.VIP==1){
 	    if(p.combo==0){
+		write(pipe_pedido_hamburguesa[1],&pedidoH,sizeof(int));
+		write(pipe_pedido_papas[1],&pedidoP,sizeof(int));
 		read(pipe_hamburguesa[0],&hamburguesa,sizeof(int));
 		read(pipe_papas[0],&papas,sizeof(int));
 	    }
 	    else{
+		write(pipe_pedido_vegano[1],&pedidoV,sizeof(int));
+		write(pipe_pedido_papas[1],&pedidoP,sizeof(int));
 		read(pipe_vegano[0],&vegano,sizeof(int));
 		read(pipe_papas[0],&papas,sizeof(int));
 	    }
@@ -119,10 +153,14 @@ void recibir_despachar(){
 	    read(pipe_pedido[0],&p,sizeof(pedido));
 	}
 	if(p.combo==0){
+	    write(pipe_pedido_hamburguesa[1],&pedidoH,sizeof(int));
+	    write(pipe_pedido_papas[1],&pedidoP,sizeof(int));
 	    read(pipe_hamburguesa[0],&hamburguesa,sizeof(int));
 	    read(pipe_papas[0],&papas,sizeof(int));
 	}
 	else{
+	    write(pipe_pedido_vegano[1],&pedidoV,sizeof(int));
+	    write(pipe_pedido_papas[1],&pedidoP,sizeof(int));
 	    read(pipe_vegano[0],&vegano,sizeof(int));
 	    read(pipe_papas[0],&papas,sizeof(int));
 	}
@@ -158,6 +196,9 @@ int main(int argc, char **argv){
     if(pipe(pipe_hamburguesa)==-1) return 1;
     if(pipe(pipe_papas)==-1) return 1;
     if(pipe(pipe_vegano)==-1) return 1;
+    if(pipe(pipe_pedido_hamburguesa)==-1) return 1;
+    if(pipe(pipe_pedido_papas)==-1) return 1;
+    if(pipe(pipe_pedido_vegano)==-1) return 1;
     if(pipe(pipe_despacho)==-1) return 1;
     
     int VIP;
@@ -179,7 +220,7 @@ int main(int argc, char **argv){
 	if(fork()==0){
 	    cliente(VIP,rand()%2);
 	    return 0; }
-	sleep(r%10);
+	sleep(r%3);
     }
     return 0;
 }
