@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <sys/types.h>
  
 #define RENOS 9
 #define ELFOS_NECESARIOS 3
@@ -88,6 +87,7 @@ void* elfo(void* args){
 int main(int argc, char **argv){
 	pthread_t t_santa, t_renos[RENOS], t_elfos[9];
  
+	//inicializacion de semaforos
 	sem_init(&trineo,0,0);
 	sem_init(&atendido,0,0);
 	sem_init(&santa_despierto,0,0);
@@ -95,21 +95,32 @@ int main(int argc, char **argv){
 	sem_init(&cant_renos, 0, RENOS);
 	sem_init(&cant_elfos, 0, ELFOS_NECESARIOS);
  
+	//creacion de santa
 	pthread_create(&t_santa,NULL,santa,NULL);
+
+	//creacion de los renos
 	for (int i = 0; i < RENOS; i++){
 		pthread_create(&t_renos[i], NULL, reno, NULL);
 	}
+
+	//creacion de los elfos
 	for (int i = 0; i < 4; i++){
 		pthread_create(&t_elfos[i], NULL, elfo, NULL);
 	}
  
+	//espero a santa
 	pthread_join(t_santa,NULL);
+
+	//espero a los renos
 	for (int i = 0; i < RENOS; i++){
 		pthread_join(t_renos[i], NULL);
 	}
+
+	//espero a los elfos
 	for (int i = 0; i < 4; i++){
 		pthread_join(t_elfos[i], NULL);
 	}
+
 	return 0;
 }
 
