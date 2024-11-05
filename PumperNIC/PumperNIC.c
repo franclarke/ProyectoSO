@@ -16,7 +16,7 @@
  * Politicas tomadas: 
  * -Los clientes toman su pedido por su cuenta, que puede ser de un VIP o no, esto debido a la complejidad que representa implementar con pipes un 
  * sistema donde cada cliente reciba su correspondiente pedido.
- * -Los clientes pueden esperar o marcharse de forma random, esto debido a la complejidad de implementarlo con pipes.
+ * -Los clientes pueden esperar o marcharse de forma random.
  * */
 
 typedef struct{
@@ -220,9 +220,12 @@ void cliente(){
     int hay_cliente = 1;
     pedido pedido_cliente;
 
-    //La condicion del while simula que el cliente se vaya si hay mucha fila
-    while(rand()%10!=9){
+    while(1){
         sleep(rand()%10);
+	if(rand()%10==9){
+	    printf("Un cliente se va porque hay mucha fila, volvera mas tarde\n");
+	    sleep(rand()%50);
+	}
         pedido_cliente.VIP = rand()%2;
         pedido_cliente.combo = rand()%3;
         printf("Llega cliente, VIP: %i, combo: %i.\n",pedido_cliente.VIP,pedido_cliente.combo);
@@ -239,7 +242,6 @@ void cliente(){
             read(pipe_papas[0],&despacho,sizeof(int));
         printf("Se va cliente, VIP: %i, combo: %i.\n",pedido_cliente.VIP,pedido_cliente.combo);
     }
-    printf("Un cliente se va porque hay mucha fila\n");
 
     close(pipe_pedidoNOVIP[1]);
     close(pipe_pedidoVIP[1]);
@@ -287,7 +289,7 @@ int main(int argc, char **argv){
     
     //termino los procesos empleados
     for(int i = 0; i<5; i++)
-	    wait(NULL);//Falta matar a todos los hijos
+	    wait(NULL);
     
     return 0;
 }

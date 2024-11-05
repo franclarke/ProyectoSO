@@ -20,24 +20,24 @@
 //Tiempos de preparacion:-----------
 #define TIEMPO_HAMBURGUESA 1
 #define TIEMPO_MENU_VEGANO 1
-#define TIEMPO_PAPAS 1
+#define TIEMPO_PAPAS 2
 //----------------------------------
 
-//Tipo de mensaje de un pedido:-----
+//Tipos de mensaje:-------------
 #define PEDIDO_VIP 1
 #define PEDIDO_NOVIP 2
-//----------------------------------
-
-//Definicion de combos:-------------
 #define HAMBURGUESA 3
 #define VEGANO 4
 #define PAPAS 5
+#define FILA 6
 //----------------------------------
 
 //ID_cliente inicial:---------------
-#define ID_CLIENTE_INICIAL 6
+#define ID_CLIENTE_INICIAL 7
 //----------------------------------
+
 #define CANT_CLIENTES 10
+#define CAPACIDAD 8
 
 typedef struct{
     long tipo;
@@ -57,6 +57,7 @@ void preparar_hamburguesa(){
 		printf("Hamburguesa lista.\n");
 		msgsnd(qid,&orden,sizeof(mensaje)-sizeof(long),0);
     }
+    exit(0);
 }
 
 void preparar_menu_vegano(){
@@ -70,6 +71,8 @@ void preparar_menu_vegano(){
 		printf("Menu vegano listo.\n");
 		msgsnd(qid,&orden,sizeof(mensaje)-sizeof(long),0);
     }
+    
+    exit(0);
 }
 
 void preparar_papas(){
@@ -83,6 +86,8 @@ void preparar_papas(){
 		printf("Papas listas.\n");
 		msgsnd(qid,&orden,sizeof(mensaje)-sizeof(long),0);
     }
+    
+    exit(0);
 }
 
 void recibir(){
@@ -90,44 +95,54 @@ void recibir(){
     mensaje pedido;
 
     while(1){
-		msgrcv(qid,&pedido,sizeof(mensaje)-sizeof(long),-PEDIDO_NOVIP,0); //Al pasar un numero negativo como tipo, se establece una prioridad para el tipo mas chico hasta el valor absoluto del parametro. Prioridad VIPs.
+		sleep(1);
+		msgrcv(qid,&pedido,sizeof(mensaje)-sizeof(long),-2,0); //Al pasar un numero negativo como tipo, se establece una prioridad para el tipo mas chico hasta el valor absoluto del parametro. Prioridad VIPs.
 		printf("Atiendo cliente con ID: %i, VIP: %i, combo: %i.\n",pedido.ID_cliente,pedido.vip,pedido.combo);
 		pedido.tipo = pedido.combo+HAMBURGUESA; //Los tipos van desde HAMBURGUESA hasta PAPAS
 		msgsnd(qid,&pedido,sizeof(mensaje)-sizeof(long),0);
     }
+    
+    exit(0);
 }
 
 void cliente(int ID_cliente){
     int qid = msgget(KEY,0666);
     srand(getpid());
     mensaje pedido;
+    mensaje fila;
 
-    while(rand()%10!=9){
+    while(1){
 		sleep(rand()%10);
+		msgrcv(qid,&fila,sizeof(mensaje)-sizeof(long),6,0);
 		pedido.vip = rand()%2;
 		pedido.combo = rand()%3;
 		pedido.ID_cliente = ID_cliente;
-		pedido.tipo = pedido.vip + PEDIDO_VIP; //Los pedidos van desde PEDIDO_VIP hasta PEDIDO_NOVIP
+		pedido.tipo = PEDIDO_NOVIP-pedido.vip; //El atributo vip determina el tipo de mensaje, 2-vip(1) = PEDIDO_VIP, 2-no vip(0) = PEDIDO_NOVIP
 		printf("Llega cliente con ID: %i, VIP: %i, combo: %i.\n",ID_cliente,pedido.vip,pedido.combo);
 		msgsnd(qid,&pedido,sizeof(mensaje)-sizeof(long),0);
 		msgrcv(qid,&pedido,sizeof(mensaje)-sizeof(long),ID_cliente,0);
 		printf("Se va cliente con ID: %i, VIP: %i, combo: %i.\n",pedido.ID_cliente,pedido.vip,pedido.combo);
+		msgsnd(qid,&fila,sizeof(mensaje)-sizeof(long),0);
     }
-    printf("Un cliente se va porque hay mucha fila\n");
     
     exit(0);
 }
 
 int main(int argc, char **argv){
-    //Se destruye la cola si es que ya esta creada, esto debido a que PumperNIC nunca finaliza su ejecucion(flujo continuo de clientes).
+    //Se destruye la cola si es que ya esta creada, esto debido a que PumperNIC nunca finaliza su ejecucion(flujo continuo de clientes), y la cola no se destruye al final.
     int qid = msgget(KEY,IPC_CREAT|0666);
     msgctl(qid,IPC_RMID,NULL);
 
-	//Se crea la cola
+    //Se crea la cola
     qid = msgget(KEY,IPC_CREAT|0666);
     
     //Se inicializa ID_cliente de esta forma para que los tipos de mensaje no coincidan
     int ID_cliente = ID_CLIENTE_INICIAL;
+    mensaje fila_max;
+    fila_max.tipo = 6;
+    
+    for(int i = 0; i<CAPACIDAD ;i++)
+	msgsnd(qid,&fila_max,sizeof(mensaje)-sizeof(long),0);
     
     //Creacion de empleados
     if(fork()==0)
