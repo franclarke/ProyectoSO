@@ -11,7 +11,7 @@ comando_ayuda comandos[] = {
     {"mkdir", "'mkdir NOMBRE_DIRECTORIO': Crear un directorio si no existe\n"},
     {"rmdir", "'rmdir NOMBRE_DIRECTORIO': Remover un directorio si existe\n"},
     {"mkfile", "'mkfile NOMBRE_ARCHIVO': Crear un nuevo archivo si no existe\n"},
-    {"shdir", "'shdir NOMBRE_DIRECTORIO': Listar el contenido del directorio\n"},
+    {"ls", "'ls [NOMBRE_DIRECTORIO]': Listar el contenido del directorio, sin parametros muestra el directorio actual\n"},
     {"shfile", "'shfile NOMBRE_ARCHIVO': Muestra el contenido de un archivo\n"},
     {"chmod", "'chmod NOMBRE_ARCHIVO MODO': Modifica los permisos de un archivo mediante el modo octal (000 al 777)\n"}
 };
