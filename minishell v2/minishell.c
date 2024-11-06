@@ -28,30 +28,31 @@ void ejecutarMetodo(char** argumentos) {
 }
 
 int main () {
-    int i,c;
+    int i, c;
     int ejecutar = 1;
     char entrada[MAX_INPUT_SIZE];
     char* argumentos[MAX_ARGUMENTOS];
 
     printf("MiniShell \n");
 
-    while(ejecutar) {
+    while (ejecutar) {
         printf("Input: ");
-        while ((c = getchar()) != '\n') {
+        i = 0;
+        
+        while ((c = getchar()) != '\n' && i < MAX_INPUT_SIZE - 1) {
             entrada[i++] = c;
         }
         entrada[i] = '\0';
 
+        // Verificación de entradas vacías o con espacios al principio.
         if (strlen(entrada) == 0) {
             printf("Linea en blanco\n");
         } else if (entrada[0] == ' ') {
             printf("El primer caracter es un espacio\n");
-        }
-
-        else{
-            i = 0;
+        } else {
+            i = 0;  // Reiniciar el índice para la tokenización.
             char* argumento = strtok(entrada, DELIMITADOR_TOKEN);
-            while(argumento != NULL && i < MAX_ARGUMENTOS - 1) {
+            while (argumento != NULL && i < MAX_ARGUMENTOS - 1) {
                 argumentos[i] = argumento;
                 i++;
                 argumento = strtok(NULL, DELIMITADOR_TOKEN);
@@ -60,7 +61,7 @@ int main () {
             if (i >= MAX_ARGUMENTOS) {
                 printf("Demasiados parametros\n");
             } else {
-                argumentos[i] = NULL;
+                argumentos[i] = NULL;  // Asegurarse de que el último argumento sea NULL.
                 if (strcmp(argumentos[0], "exit") == 0) {
                     ejecutar = 0;
                 } else {
