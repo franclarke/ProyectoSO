@@ -131,7 +131,7 @@ int main(int argc, char **argv){
 	}
 
 	//espero a los elfos
-	for (int i = 0; i < 4; i++){
+	for (int i = 0; i < ELFOS; i++){
 		pthread_join(t_elfos[i], NULL);
 	}
 
