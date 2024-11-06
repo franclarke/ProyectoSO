@@ -13,7 +13,8 @@ int main(int argc, char **argv) {
     }
     struct dirent *entrada;
     while ((entrada = readdir(directorio)) != NULL) {
-        printf("%s\n", entrada->d_name);
+        if ((strcmp(entrada->d_name, ".")!=0) && (strcmp(entrada->d_name, "..")!=0) )
+            printf("%s\n", entrada->d_name);
     }
 
     closedir(directorio);

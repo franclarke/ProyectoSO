@@ -17,7 +17,7 @@ int main (int argc, char **argv) {
         char *texto;
         long codigo = strtol(argv[2], &texto, 8);
         if (*texto != '\0' || codigo < 0 || codigo > 0777) {
-            printf("Codigo de permisos invalido\n");
+            printf("Codigo invalido\n");
             exit(1);
         }
         
@@ -25,7 +25,7 @@ int main (int argc, char **argv) {
         snprintf(archivo, MAX_FILENAME_SIZE, "./%s", argv[1]);
 
         if (chmod(archivo, codigo) != 0) {
-            perror("Error al modificar los permisos");
+            perror("Error al intentar modificar los permisos");
             exit(1);
         }
         printf("Permisos cambiados correctamente\n");
