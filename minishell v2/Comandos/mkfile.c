@@ -4,22 +4,20 @@
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        printf("Error: Cantidad de parametros invalida\n");
+        printf("Cantidad de parámetros inválida\n");
     } else {
-        FILE *archivo;
+        FILE *file;
 
         if (access(argv[1], F_OK) == 0) {
-            printf("Error: El archivo ya existe\n");
-            exit(EXIT_FAILURE);
+            printf("El archivo ya existe\n");
         } else {
-            archivo = fopen(argv[1], "w");
-            if (archivo == NULL) {
-                perror("Error al crear el archivo");
-                exit(EXIT_FAILURE);
+            file = fopen(argv[1], "w");
+            if (file == NULL) {
+                perror("Error al intentar crear el archivo");
+                exit(1);
             }
-            fclose(archivo);
-            printf("El archivo se ha creado con exito\n");
-            exit(EXIT_SUCCESS);
+            fclose(file);
+            printf("El archivo fue creado exitosamente\n");
         }
     }
     return 0;

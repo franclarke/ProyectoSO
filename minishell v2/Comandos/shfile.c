@@ -3,22 +3,19 @@
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        printf("Error: Cantidad de parametros invalida\n");
+        printf("Cantidad de parámetros inválida\n");
     } else {
-        FILE *archivo = fopen(argv[1], "r");
-
-        if (archivo == NULL) {
-            perror("Error al abrir el archivo");
-            exit(EXIT_FAILURE);
+        FILE *file = fopen(argv[1], "r");
+        if (file == NULL) {
+            perror("Error al intentar abrir el archivo");
+            exit(1);
         }
-
-        int caracter;
-        while ((caracter = fgetc(archivo)) != EOF) {
-            putchar(caracter);
+        int c;
+        while ((c = fgetc(file)) != EOF) {
+            printf("%c", c);
         }
-
-        fclose(archivo);
-        exit(EXIT_SUCCESS);
+        fclose(file);
+        exit(0);
     }
     return 0;
 }

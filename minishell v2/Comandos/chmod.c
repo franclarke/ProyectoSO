@@ -8,17 +8,17 @@
 
 int main (int argc, char **argv) {
     if (argc != 3) {
-        printf("Error: Cantidad de parametros invalida\n");
+        printf("Cantidad de parámetros inválida\n");
     } else {
         if (access(argv[1], F_OK) != 0) {
-            printf("Error: El archivo no existe\n");
-            exit(EXIT_FAILURE);
+            printf("El archivo no existe\n");
+            exit(1);
         }
-        char *endptr;
-        long codigo = strtol(argv[2], &endptr, 8);
-        if (*endptr != '\0' || codigo < 0 || codigo > 0777) {
-            printf("Error: Codigo de permisos invalido\n");
-            exit(EXIT_FAILURE);
+        char *texto;
+        long codigo = strtol(argv[2], &texto, 8);
+        if (*texto != '\0' || codigo < 0 || codigo > 0777) {
+            printf("Codigo de permisos invalido\n");
+            exit(1);
         }
         
         char archivo[MAX_FILENAME_SIZE];
@@ -26,7 +26,7 @@ int main (int argc, char **argv) {
 
         if (chmod(archivo, codigo) != 0) {
             perror("Error al modificar los permisos");
-            exit(EXIT_FAILURE);
+            exit(1);
         }
         printf("Permisos cambiados correctamente\n");
     }

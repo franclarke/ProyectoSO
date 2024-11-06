@@ -4,14 +4,13 @@
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        printf("Error: Cantidad de parametros invalida\n");
+        printf("Cantidad de parámetros inválida\n");
     } else {
         if (rmdir(argv[1]) == 0) {
-            printf("Se removio el directorio de forma exitosa\n");
-            exit(EXIT_SUCCESS);
+            printf("Se elimino el directorio exitosamente\n");
         } else {
-            perror("Error al remover el directorio");
-            exit(EXIT_FAILURE);
+            perror("Error al intentar eliminar el directorio");
+            exit(1);
         }
     }
     return 0;
