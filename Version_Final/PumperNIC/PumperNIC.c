@@ -168,7 +168,7 @@ void recibir(){
     while(1){
         //Hay algun cliente
         read(pipe_hay_clientes[0],&hay_cliente,sizeof(int));
-        //atiendo todos los vips
+        //atiendo los vips
         if(read(pipe_pedidoVIP[0],&pedido_cliente,sizeof(pedido))!=-1){
             printf("Atiendo cliente VIP \n");
             if(pedido_cliente.combo==0)
@@ -178,7 +178,7 @@ void recibir(){
             else
                 write(pipe_orden_papas[1],&ordenP,sizeof(int));
         }
-        //Termino de atender vips y atiendo un no vip
+        //atiendo los no vip
         else if(read(pipe_pedidoNOVIP[0],&pedido_cliente,sizeof(pedido))!=-1){
             printf("Atiendo cliente no VIP \n");
             if(pedido_cliente.combo==0)
@@ -287,7 +287,7 @@ int main(int argc, char **argv){
     for(int i = 0; i<CANT_CLIENTES; i++)
 	    wait(NULL);
     
-    //termino los procesos empleados
+    //espero los procesos empleados
     for(int i = 0; i<5; i++)
 	    wait(NULL);
     

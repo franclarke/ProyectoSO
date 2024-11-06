@@ -139,7 +139,7 @@ int main(int argc, char **argv){
     //Se inicializa ID_cliente de esta forma para que los tipos de mensaje no coincidan
     int ID_cliente = ID_CLIENTE_INICIAL;
     mensaje fila_max;
-    fila_max.tipo = 6;
+    fila_max.tipo = FILA;
     
     for(int i = 0; i<CAPACIDAD ;i++)
 	msgsnd(qid,&fila_max,sizeof(mensaje)-sizeof(long),0);
